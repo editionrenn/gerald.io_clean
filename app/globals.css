@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{ --main-color:#011a01; --accent-color:#C0FF00; }
+body{ background: var(--main-color) radial-gradient(rgba(192,255,0,0.05) 1px, transparent 1px); background-size:40px 40px; color:#fff; font-family: Poppins, ui-sans-serif, system-ui; }
+a:hover{ color: var(--accent-color); }
