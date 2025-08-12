@@ -1,6 +1,17 @@
 ﻿node_modules
 .next
-.vercel
+.out
 dist
 build
+.vercel
+.turbo
+
+# Env & secrets
 .env*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
