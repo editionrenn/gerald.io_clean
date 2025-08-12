@@ -10,7 +10,6 @@ export default function Nav() {
         <a href="/#how" className="transition-colors hover:text-[#C0FF00]">How It Works</a>
         <a href="/#pricing" className="transition-colors hover:text-[#C0FF00]">Pricing</a>
         <a href="/#contact" className="transition-colors hover:text-[#C0FF00]">Contact</a>
-
         <SignedIn>
           <Link href="/chat" className="transition-colors hover:text-[#C0FF00]">Chat</Link>
         </SignedIn>
