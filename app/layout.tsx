@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import "./globals.css";
 import Providers from './providers';
-import Nav from '../components/Nav';
+import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
   title: 'GERALD.io',

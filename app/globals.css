@@ -1,6 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root{ --main-color:#011a01; --accent-color:#C0FF00; }
-body{ background: var(--main-color) radial-gradient(rgba(192,255,0,0.05) 1px, transparent 1px); background-size:40px 40px; color:#fff; font-family: Poppins, ui-sans-serif, system-ui; }
-a:hover{ color: var(--accent-color); }
+
+/* Theme */
+:root{
+  --main-color:#011a01;
+  --accent-color:#C0FF00;
+  --text-color:#ffffff;
+  --muted:#9aa59a;
+  --card:#0c130c;
+  --card-border:#1f2a1f;
+  --chip:#0e1d0e;
+  --chip-border:#203320;
+}
+
+/* Global canvas */
+html,body{
+  height:100%;
+  background: var(--main-color);
+  color: var(--text-color);
+  font-family: Poppins, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+/* Subtle grid pattern like before */
+body{
+  background-image: radial-gradient(rgba(192,255,0,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Utility helpers (optional but handy) */
+.btn-accent{
+  background-color: var(--accent-color);
+  color:#000;
+}
+.card{
+  background: var(--card);
+  border:1px solid var(--card-border);
+  border-radius: 1rem;
+}
+.chip{
+  background: var(--chip);
+  border:1px solid var(--chip-border);
+  color: var(--accent-color);
+}
