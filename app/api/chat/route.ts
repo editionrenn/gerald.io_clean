@@ -1,81 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
 
-export const runtime = 'nodejs';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    // 1) Auth
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const body = await req.json();
 
-    // 2) Plan gate (admin bypass supported via publicMetadata.admin = true)
-    const user = await clerkClient.users.getUser(userId);
-    const plan = (user.publicMetadata?.plan as string) || 'free';
-    const isAdmin = Boolean(user.publicMetadata?.admin);
-    const active = isAdmin || plan === 'pro' || plan === 'team';
+    // Default to PRO price ID if none passed
+    const priceId =
+      body.priceId ||
+      process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO; // Must match frontend env var
 
-    if (!active) {
+    if (!priceId) {
       return NextResponse.json(
-        { reply: 'Please subscribe to chat. Visit /pricing to activate your plan.' },
-        { status: 402 }
+        { error: 'Missing Stripe price ID' },
+        { status: 400 }
       );
     }
 
-    // 3) Input
-    const body = await req.json().catch(() => ({}));
-    const message = typeof body?.message === 'string' ? body.message : '';
-    if (!message) {
-      return NextResponse.json({ reply: 'No message provided.' }, { status: 400 });
-    }
-
-    // 4) Env
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      console.error('[CHAT] Missing OPENAI_API_KEY');
-      return NextResponse.json({ reply: 'Server is missing OPENAI_API_KEY.' }, { status: 500 });
-    }
-
-    // 5) Call OpenAI
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              process.env.GERALD_SYSTEM_PROMPT ??
-              'You are Gerald, an upbeat AI sales coach for automotive reps. Be concise and tactical.',
-          },
-          { role: 'user', content: message },
-        ],
-        temperature: 0.7,
-      }),
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: body.successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/account?status=success`,
+      cancel_url: body.cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/pricing?status=cancelled`,
     });
 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '');
-      console.error('[CHAT] OpenAI error:', resp.status, text);
-      return NextResponse.json(
-        { reply: `Upstream error: ${resp.status} ${text.slice(0, 200)}` },
-        { status: 500 }
-      );
-    }
-
-    const data = await resp.json();
-    const reply =
-      data?.choices?.[0]?.message?.content ?? 'I had trouble forming a reply. Try again?';
-
-    return NextResponse.json({ reply });
+    return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('[CHAT] Internal error:', err);
-    return NextResponse.json({ reply: 'Internal error while processing chat.' }, { status: 500 });
+    console.error('Stripe Checkout Error:', err);
+    return NextResponse.json(
+      { error: 'Failed to create checkout session' },
+      { status: 500 }
+    );
   }
 }
