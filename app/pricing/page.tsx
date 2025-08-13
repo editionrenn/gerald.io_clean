@@ -1,41 +1,10 @@
-'use client';
+import { auth } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 
-import { useState } from 'react';
-
-const PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO!; // STRIPE_PRICE_ID_PRO
-
-export default function PricingPage() {
-  const [loading, setLoading] = useState(false);
-
-  async function startCheckout() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId: PRICE_ID,
-          mode: 'subscription',
-          successUrl: `${window.location.origin}/account?status=success`,
-          cancelUrl: `${window.location.origin}/pricing?status=cancelled`,
-        }),
-      });
-
-      if (!res.ok) throw new Error(`Checkout failed (${res.status})`);
-      const { url } = await res.json();
-      if (!url) throw new Error('Missing checkout URL');
-      window.location.href = url;
-    } catch (err) {
-      console.error(err);
-      alert('Checkout error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const btnCls = 'inline-block px-6 py-3 rounded-xl font-semibold text-sm';
-  const cardBorder = { borderColor: '#2b352b' as const };
-  const badgeStyle = { background: '#0e1d0e', border: '1px solid #203320', color: '#C0FF00' };
+export default async function PricingPage() {
+  // Require auth for checkout; if not logged in, show page but we'll
+  // redirect on click when we get a 401 from the API.
+  const { userId } = auth();
 
   return (
     <main className="px-8 py-16">
@@ -44,32 +13,60 @@ export default function PricingPage() {
         Early Adopter Launch Pricing — lock it in for life.
       </p>
 
-      <div className="max-w-md mx-auto">
-        {/* PRO */}
-        <div className="p-8 border rounded-2xl shadow-sm bg-black" style={cardBorder}>
-          <div className="inline-block text-[10px] px-2 py-1 rounded-full mb-3" style={badgeStyle}>
+      <div className="max-w-4xl mx-auto">
+        {/* PRO plan only */}
+        <div
+          className="p-8 border rounded-2xl shadow-sm bg-black"
+          style={{ borderColor: '#2b352b' }}
+        >
+          <div
+            className="inline-block text-[10px] px-2 py-1 rounded-full mb-3"
+            style={{ background: '#0e1d0e', border: '1px solid #203320', color: '#C0FF00' }}
+          >
             Limited Time
           </div>
-          <h3 className="font-semibold text-xl mb-2" style={{ color: 'var(--accent-color)' }}>PRO</h3>
+
+          <h3 className="font-semibold text-xl mb-2" style={{ color: 'var(--accent-color)' }}>
+            PRO
+          </h3>
+
           <div className="text-4xl font-bold mb-2">
             $17<span className="text-lg font-normal">/mo</span>
           </div>
+
           <ul className="text-sm mb-6 space-y-2">
             <li>✔ Unlimited chats with Gerald</li>
             <li>✔ Save & review conversation history</li>
             <li>✔ Early access to new features</li>
           </ul>
+
           <button
-            className={btnCls}
-            style={{
-              backgroundColor: 'var(--accent-color)',
-              color: 'black',
-              opacity: loading ? 0.7 : 1,
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+                if (res.status === 401) {
+                  // not signed in; send them to sign-in
+                  window.location.href = '/sign-in?redirect_url=/pricing';
+                  return;
+                }
+                if (!res.ok) {
+                  alert('Checkout error — please try again.');
+                  return;
+                }
+                const data = await res.json();
+                if (data?.url) {
+                  window.location.href = data.url;
+                } else {
+                  alert('Checkout error — please try again.');
+                }
+              } catch (e) {
+                alert('Network error — please try again.');
+              }
             }}
-            onClick={startCheckout}
-            disabled={loading}
+            className="inline-block px-6 py-3 rounded-xl font-semibold text-sm"
+            style={{ backgroundColor: 'var(--accent-color)', color: 'black' }}
           >
-            {loading ? 'Starting…' : 'Get Started'}
+            Get Started
           </button>
         </div>
       </div>
