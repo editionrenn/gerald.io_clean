@@ -4,23 +4,25 @@ import Link from 'next/link';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export default function Nav() {
-  const linkCls =
-    'px-2 transition-colors duration-200 hover:text-[#C0FF00]';
+  const item =
+    'whitespace-nowrap px-2 transition-colors duration-200 hover:text-[#C0FF00]';
 
   return (
-    <nav className="flex items-center gap-6 text-sm font-medium">
-      <a href="/#features" className={linkCls}>Features</a>
-      <a href="/#how" className={linkCls}>How It Works</a>
-      <a href="/#pricing" className={linkCls}>Pricing</a>
-      <a href="/#contact" className={linkCls}>Contact</a>
+    <nav aria-label="Primary" className="flex items-center">
+      <ul className="flex items-center gap-6">
+        <li><a href="/#features" className={item}>Features</a></li>
+        <li><a href="/#how" className={item}>How It Works</a></li>
+        <li><a href="/#pricing" className={item}>Pricing</a></li>
+        <li><a href="/#contact" className={item}>Contact</a></li>
 
-      {/* Chat routes: logged-in -> /chat, logged-out -> /sign-in */}
-      <SignedIn>
-        <Link href="/chat" className={linkCls}>Chat</Link>
-      </SignedIn>
-      <SignedOut>
-        <Link href="/sign-in" className={linkCls}>Chat</Link>
-      </SignedOut>
+        {/* Chat routes: logged-in -> /chat, logged-out -> /sign-in */}
+        <SignedIn>
+          <li><Link href="/chat" className={item}>Chat</Link></li>
+        </SignedIn>
+        <SignedOut>
+          <li><Link href="/sign-in" className={item}>Chat</Link></li>
+        </SignedOut>
+      </ul>
     </nav>
   );
 }
