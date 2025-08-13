@@ -43,3 +43,12 @@ body{
   border:1px solid var(--chip-border);
   color: var(--accent-color);
 }
+/* Smooth in-page scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Avoid header overlap when jumping to sections */
+section {
+  scroll-margin-top: 80px; /* match your header height */
+}
