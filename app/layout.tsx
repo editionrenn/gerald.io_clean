@@ -16,7 +16,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         style={{
           // theme vars
-          // @ts-expect-error CSS vars
           '--main-color': '#011a01',
           '--accent-color': '#C0FF00',
           backgroundColor: 'var(--main-color)',
