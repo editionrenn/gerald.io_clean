@@ -1,12 +1,17 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+// middleware.ts (Clerk v4)
+import { authMiddleware } from '@clerk/nextjs';
 
-export default clerkMiddleware({
+export default authMiddleware({
   publicRoutes: ['/', '/pricing', '/sign-in(.*)'],
+  // Don't auth-protect Stripe webhooks:
+  ignoredRoutes: ['/api/stripe/webhook'],
 });
 
 export const config = {
   matcher: [
-    // run on everything except static assets and Next internals
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)',
+    // exclude _next and all files with an extension
+    '/((?!_next|.*\\..*).*)',
+    // include API routes
+    '/api/(.*)',
   ],
 };
