@@ -1,14 +1,12 @@
-// middleware.ts
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
 export default clerkMiddleware({
-  publicRoutes: ['/', '/pricing', '/sign-in(.*)', '/api/stripe/webhook'],
+  publicRoutes: ['/', '/pricing', '/sign-in(.*)'],
 });
 
 export const config = {
   matcher: [
-    '/((?!.+\\.[\\w]+$|_next).*)',
-    '/',
-    '/(api|trpc)(.*)',
+    // run on everything except static assets and Next internals
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp)$).*)',
   ],
 };
