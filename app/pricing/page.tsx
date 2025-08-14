@@ -1,17 +1,19 @@
-// app/pricing/page.tsx
-export const dynamic = 'force-dynamic'; // avoid prerender/AuthContext issues
+export const dynamic = 'force-dynamic';
 
-import BuyProButton from '@/app/components/BuyProButton';
+export default function PricingPage() {
+  async function createCheckout() {
+    'use server';
+    // We’ll post from the client to /api/stripe/checkout; this is just here to keep Next happy if needed.
+  }
 
-export default async function PricingPage() {
   return (
     <main className="px-8 py-16">
       <h2 className="text-3xl font-bold mb-3 text-center">Pricing</h2>
       <p className="text-center text-gray-400 mb-10">
-        Early Adopter Launch Pricing — lock it in for life.
+        Early Adopter Launch — lock in <span className="font-semibold" style={{ color: 'var(--accent-color)' }}>$17/mo</span>.
       </p>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-md mx-auto">
         <div
           className="p-8 border rounded-2xl shadow-sm bg-black"
           style={{ borderColor: '#2b352b' }}
@@ -20,11 +22,11 @@ export default async function PricingPage() {
             className="inline-block text-[10px] px-2 py-1 rounded-full mb-3"
             style={{ background: '#0e1d0e', border: '1px solid #203320', color: '#C0FF00' }}
           >
-            Limited Time
+            PRO
           </div>
 
           <h3 className="font-semibold text-xl mb-2" style={{ color: 'var(--accent-color)' }}>
-            PRO
+            Everything you need
           </h3>
 
           <div className="text-4xl font-bold mb-2">
@@ -37,7 +39,20 @@ export default async function PricingPage() {
             <li>✔ Early access to new features</li>
           </ul>
 
-          <BuyProButton />
+          {/* CTA calls your /api/stripe/checkout endpoint */}
+          <form action="/api/stripe/checkout" method="POST">
+            <button
+              type="submit"
+              className="w-full px-6 py-3 rounded-xl font-semibold text-sm"
+              style={{ backgroundColor: 'var(--accent-color)', color: 'black' }}
+            >
+              Get Started
+            </button>
+          </form>
+
+          <div className="text-xs text-gray-400 mt-3">
+            You’ll be redirected to secure checkout.
+          </div>
         </div>
       </div>
     </main>
