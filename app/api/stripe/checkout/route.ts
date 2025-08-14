@@ -1,44 +1,26 @@
-// app/api/stripe/checkout/route.ts
-import { auth } from '@clerk/nextjs/server';
 import Stripe from 'stripe';
 
-export const runtime = 'nodejs';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
+export async function POST(req: Request) {
+  const { email, useCoupon } = await req.json();
 
-function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-}
+  const params: Stripe.Checkout.SessionCreateParams = {
+    mode: 'subscription',
+    payment_method_types: ['card'],
+    customer_email: email,
+    line_items: [
+      { price: process.env.STRIPE_PRICE_ID_PRO!, quantity: 1 }
+    ],
+    success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
+  };
 
-export async function POST() {
-  try {
-    const { userId } = auth();
-    if (!userId) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    const priceId = process.env.STRIPE_PRICE_ID_PRO;
-    if (!priceId) {
-      console.error('Missing env STRIPE_PRICE_ID_PRO');
-      return new Response('Missing price configuration', { status: 500 });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl()}/account?checkout=success`,
-      cancel_url: `${siteUrl()}/pricing?checkout=cancel`,
-      // helpful metadata for later
-      metadata: { userId, plan: 'pro' },
-      allow_promotion_codes: true,
-      billing_address_collection: 'auto',
-    });
-
-    return Response.json({ url: session.url });
-  } catch (err) {
-    console.error('Stripe checkout error:', err);
-    return new Response('Checkout error', { status: 500 });
+  // If a coupon is being applied
+  if (useCoupon) {
+    params.discounts = [{ coupon: process.env.STRIPE_COUPON_ID_FREE! }];
   }
+
+  const session = await stripe.checkout.sessions.create(params);
+  return new Response(JSON.stringify({ url: session.url }), { status: 200 });
 }
