@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       discounts: useCoupon && process.env.STRIPE_COUPON_ID_FREE
         ? [{ coupon: process.env.STRIPE_COUPON_ID_FREE }]
         : undefined,
-      success_url: `${baseUrl}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/stripe/success`,
       cancel_url: `${baseUrl}/pricing?canceled=1`,
       metadata: {
         clerkUserId: userId, // so webhook/success page knows who to upgrade
