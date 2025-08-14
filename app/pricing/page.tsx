@@ -3,18 +3,15 @@
 export const dynamic = "force-dynamic";
 
 export default function PricingPage() {
-  async function startCheckout(useCoupon = false) {
+  async function startCheckout() {
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ useCoupon }),
+        body: JSON.stringify({}), // no flags needed
       });
 
-      // If the API returned no body (shouldn't happen), guard it:
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
-
+      const data = await res.json().catch(() => ({}));
       if (res.ok && data?.url) {
         window.location.href = data.url;
       } else {
@@ -34,15 +31,11 @@ export default function PricingPage() {
         Early Adopter Launch — lock in{" "}
         <span className="font-semibold" style={{ color: "var(--accent-color)" }}>
           $17/mo
-        </span>
-        .
+        </span>.
       </p>
 
       <div className="max-w-md mx-auto">
-        <div
-          className="p-8 border rounded-2xl shadow-sm bg-black"
-          style={{ borderColor: "#2b352b" }}
-        >
+        <div className="p-8 border rounded-2xl shadow-sm bg-black" style={{ borderColor: "#2b352b" }}>
           <div
             className="inline-block text-[10px] px-2 py-1 rounded-full mb-3"
             style={{ background: "#0e1d0e", border: "1px solid #203320", color: "#C0FF00" }}
@@ -65,21 +58,12 @@ export default function PricingPage() {
           </ul>
 
           <button
-            onClick={() => startCheckout(false)}
+            onClick={startCheckout}
             className="w-full px-6 py-3 rounded-xl font-semibold text-sm"
             style={{ backgroundColor: "var(--accent-color)", color: "black" }}
           >
             Get Started
           </button>
-
-          {/* Optional: a coupon button that sets useCoupon=true */}
-          {/* <button
-            onClick={() => startCheckout(true)}
-            className="w-full mt-2 px-6 py-3 rounded-xl font-semibold text-sm border"
-            style={{ borderColor: "#2b352b", color: "#C0FF00" }}
-          >
-            Redeem Coupon
-          </button> */}
 
           <div className="text-xs text-gray-400 mt-3">You’ll be redirected to secure checkout.</div>
         </div>
