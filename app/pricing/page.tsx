@@ -1,31 +1,56 @@
-export const dynamic = 'force-dynamic';
+"use client";
+
+export const dynamic = "force-dynamic";
 
 export default function PricingPage() {
-  async function createCheckout() {
-    'use server';
-    // We’ll post from the client to /api/stripe/checkout; this is just here to keep Next happy if needed.
+  async function startCheckout(useCoupon = false) {
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ useCoupon }),
+      });
+
+      // If the API returned no body (shouldn't happen), guard it:
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (res.ok && data?.url) {
+        window.location.href = data.url;
+      } else {
+        console.error("Checkout API response:", data);
+        alert(data?.error || "Checkout error, try again.");
+      }
+    } catch (err) {
+      console.error("Checkout fetch failed:", err);
+      alert("Network error starting checkout. Please try again.");
+    }
   }
 
   return (
     <main className="px-8 py-16">
       <h2 className="text-3xl font-bold mb-3 text-center">Pricing</h2>
       <p className="text-center text-gray-400 mb-10">
-        Early Adopter Launch — lock in <span className="font-semibold" style={{ color: 'var(--accent-color)' }}>$17/mo</span>.
+        Early Adopter Launch — lock in{" "}
+        <span className="font-semibold" style={{ color: "var(--accent-color)" }}>
+          $17/mo
+        </span>
+        .
       </p>
 
       <div className="max-w-md mx-auto">
         <div
           className="p-8 border rounded-2xl shadow-sm bg-black"
-          style={{ borderColor: '#2b352b' }}
+          style={{ borderColor: "#2b352b" }}
         >
           <div
             className="inline-block text-[10px] px-2 py-1 rounded-full mb-3"
-            style={{ background: '#0e1d0e', border: '1px solid #203320', color: '#C0FF00' }}
+            style={{ background: "#0e1d0e", border: "1px solid #203320", color: "#C0FF00" }}
           >
             PRO
           </div>
 
-          <h3 className="font-semibold text-xl mb-2" style={{ color: 'var(--accent-color)' }}>
+          <h3 className="font-semibold text-xl mb-2" style={{ color: "var(--accent-color)" }}>
             Everything you need
           </h3>
 
@@ -39,20 +64,24 @@ export default function PricingPage() {
             <li>✔ Early access to new features</li>
           </ul>
 
-          {/* CTA calls your /api/stripe/checkout endpoint */}
-          <form action="/api/stripe/checkout" method="POST">
-            <button
-              type="submit"
-              className="w-full px-6 py-3 rounded-xl font-semibold text-sm"
-              style={{ backgroundColor: 'var(--accent-color)', color: 'black' }}
-            >
-              Get Started
-            </button>
-          </form>
+          <button
+            onClick={() => startCheckout(false)}
+            className="w-full px-6 py-3 rounded-xl font-semibold text-sm"
+            style={{ backgroundColor: "var(--accent-color)", color: "black" }}
+          >
+            Get Started
+          </button>
 
-          <div className="text-xs text-gray-400 mt-3">
-            You’ll be redirected to secure checkout.
-          </div>
+          {/* Optional: a coupon button that sets useCoupon=true */}
+          {/* <button
+            onClick={() => startCheckout(true)}
+            className="w-full mt-2 px-6 py-3 rounded-xl font-semibold text-sm border"
+            style={{ borderColor: "#2b352b", color: "#C0FF00" }}
+          >
+            Redeem Coupon
+          </button> */}
+
+          <div className="text-xs text-gray-400 mt-3">You’ll be redirected to secure checkout.</div>
         </div>
       </div>
     </main>

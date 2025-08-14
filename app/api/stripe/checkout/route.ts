@@ -1,21 +1,21 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
+// ...your existing imports/env
 
-// ❌ remove the apiVersion option
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2023-10-16" });
 
 export async function POST(req: Request) {
-  const { email, useCoupon } = await req.json();
+  let payload: any = {};
+  try {
+    const text = await req.text(); // read raw
+    payload = text ? JSON.parse(text) : {}; // tolerate empty body
+  } catch {
+    payload = {};
+  }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    customer_email: email,
-    line_items: [{ price: process.env.STRIPE_PRICE_ID_PRO!, quantity: 1 }],
-    discounts: useCoupon && process.env.STRIPE_COUPON_ID_FREE
-      ? [{ coupon: process.env.STRIPE_COUPON_ID_FREE }]
-      : undefined,
-    success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account?status=success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/pricing?status=cancelled`,
-  });
+  const { useCoupon = false, email } = payload;
 
-  return Response.json({ url: session.url });
+  // ...the rest of your existing logic:
+  // - pick priceId = process.env.STRIPE_PRICE_ID_PRO
+  // - optionally apply a coupon/promotion_code if useCoupon === true
+  // - create checkout session and return { url }
 }
