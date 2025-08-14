@@ -1,37 +1,26 @@
 import { currentUser } from '@clerk/nextjs/server';
+import AccountClient from './AccountClient';
+
+export const dynamic = 'force-dynamic'; // avoids prerender issues with auth
 
 export default async function AccountPage() {
+  // Optional: keep this check so logged-out visitors don’t hit this page
   const user = await currentUser();
-
-  const displayName =
-    (user?.firstName || user?.lastName)
-      ? [user?.firstName, user?.lastName].filter(Boolean).join(' ')
-      : user?.username ?? '—';
-
-  const email = user?.emailAddresses?.[0]?.emailAddress ?? '—';
-
-  return (
-    <div className="max-w-2xl mx-auto px-6 py-16">
-      <h2 className="text-3xl font-bold mb-6 text-center">Account</h2>
-      <div className="grid gap-6">
-        <div className="p-5 rounded-2xl border" style={{ borderColor: '#2b352b', backgroundColor: '#0c130c' }}>
-          <div className="text-sm text-gray-300">Name</div>
-          <div className="text-lg font-semibold">{displayName}</div>
-        </div>
-        <div className="p-5 rounded-2xl border" style={{ borderColor: '#2b352b', backgroundColor: '#0c130c' }}>
-          <div className="text-sm text-gray-300">Email</div>
-          <div className="text-lg font-semibold">{email}</div>
-        </div>
-        <div className="flex gap-3">
-          <a
-            href="/"
-            className="rounded-xl px-4 py-2 font-semibold"
-            style={{ backgroundColor: 'var(--accent-color)', color: 'black' }}
-          >
-            Back home
-          </a>
-        </div>
+  if (!user) {
+    // If you prefer, you can redirect to /sign-in here
+    return (
+      <div className="max-w-lg mx-auto px-6 py-16">
+        <h2 className="text-2xl font-bold mb-4">Please sign in</h2>
+        <a
+          href="/sign-in"
+          className="inline-block rounded-xl px-4 py-2 font-semibold"
+          style={{ backgroundColor: 'var(--accent-color)', color: 'black' }}
+        >
+          Go to Sign In
+        </a>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <AccountClient />;
 }
