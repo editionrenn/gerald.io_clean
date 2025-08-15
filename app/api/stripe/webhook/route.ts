@@ -32,9 +32,9 @@ export async function POST(req: Request) {
 
         if (email) {
           // Look up Clerk user by email
-          const { data: users } = await clerkClient.users.getUserList({
-            emailAddress: [email],
-            limit: 1,
+const users = await clerkClient.users.getUserList({
+  emailAddress: [email],
+  limit: 1,
           });
           const user = users?.[0];
           if (user) {
