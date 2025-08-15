@@ -5,7 +5,6 @@ import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 export default function RightAuth() {
   const { user } = useUser();
 
-  // Treat either publicMetadata.plan or unsafeMetadata.plan === 'pro' as paid
   const isPro =
     (user?.publicMetadata as any)?.plan === 'pro' ||
     (user?.unsafeMetadata as any)?.plan === 'pro';
@@ -23,19 +22,14 @@ export default function RightAuth() {
       </SignedOut>
 
       <SignedIn>
-        {/* Avatar wrapper */}
         <div className="relative inline-block">
-          {/* PRO badge */}
           {isPro && (
             <span
-              className="absolute -top-2 -right-2 z-20 rounded-full px-1.5 py-[2px] text-[10px] font-extrabold tracking-widest"
-              style={{ color: '#C0FF00' }}
-              aria-label="Pro subscriber"
+              className="absolute -top-3 -right-6 z-20 rounded-full bg-[#C0FF00] px-2 py-[2px] text-[10px] font-bold text-black shadow-md"
             >
               PRO
             </span>
           )}
-          {/* Avatar (below the badge) */}
           <div className="z-10">
             <UserButton afterSignOutUrl="/" />
           </div>
