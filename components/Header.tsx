@@ -5,13 +5,16 @@ import { useState } from 'react';
 export default function Header({ user, setUser, setRoute }: any) {
   return (
     <header className="p-6 border-b border-gray-800 flex items-center">
-      {/* Left: Logo */}
-      <div className="flex-shrink-0">
+      {/* Left: Logo + Beta */}
+      <div className="flex-shrink-0 flex flex-col items-start">
         <h1 className="text-2xl font-bold tracking-wide">
           <a href="#home" onClick={() => setRoute("#home")}>
             GERALD<span className="text-sm">.io</span>
           </a>
         </h1>
+        <span className="text-[10px] font-bold bg-[#c0ff00] text-black px-2 py-0.5 rounded-full mt-1 tracking-wider">
+          BETA
+        </span>
       </div>
 
       {/* Center: Nav */}
