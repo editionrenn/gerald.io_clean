@@ -1,38 +1,62 @@
 import Stripe from 'stripe';
 import { currentUser } from '@clerk/nextjs/server';
 
-export const runtime = 'nodejs'; // ensure Node runtime (not Edge)
+export const runtime = 'nodejs';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
 });
 
 export async function POST(req: Request) {
-  // ignore the body, but don't crash if it's empty
-  try { await req.json(); } catch {}
+  try {
+    // Optional body if you later want a toggle like { useCoupon: true }
+    let payload: any = {};
+    try {
+      payload = await req.json();
+    } catch {
+      /* no body is fine */
+    }
 
-  const priceId = process.env.STRIPE_PRICE_ID_PRO!;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
+    const priceId = process.env.STRIPE_PRICE_ID_PRO;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-  const user = await currentUser().catch(() => null);
+    if (!priceId || !baseUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Missing STRIPE_PRICE_ID_PRO or NEXT_PUBLIC_BASE_URL' }),
+        { status: 500, headers: { 'content-type': 'application/json' } }
+      );
+    }
 
-  // Pull the primary email safely with types
-  const primaryEmail =
-    user?.emailAddresses?.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ??
-    user?.emailAddresses?.[0]?.emailAddress ??
-    undefined;
+    const user = await currentUser().catch(() => null);
+    const primaryEmail =
+      user?.emailAddresses?.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ??
+      user?.emailAddresses?.[0]?.emailAddress ??
+      undefined;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    allow_promotion_codes: true, // show "Add promotion code"
-    success_url: `${baseUrl}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/pricing`,
-    customer_email: primaryEmail, // optional
-  });
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true, // Show “Add promotion code” on Stripe Checkout
+      success_url: `${baseUrl}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing`,
+      customer_email: primaryEmail, // optional: Stripe will prefill the email
+      client_reference_id: user?.id, // helpful to correlate in your webhook
+      metadata: {
+        clerkUserId: user?.id || '',
+        clerkPrimaryEmail: primaryEmail || '',
+        plan: 'pro',
+      },
+    });
 
-  return new Response(JSON.stringify({ url: session.url }), {
-    status: 200,
-    headers: { 'content-type': 'application/json' },
-  });
+    return new Response(JSON.stringify({ url: session.url }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  } catch (err: any) {
+    console.error('Checkout error:', err);
+    return new Response(
+      JSON.stringify({ error: err?.message || 'Checkout error' }),
+      { status: 500, headers: { 'content-type': 'application/json' } }
+    );
+  }
 }
