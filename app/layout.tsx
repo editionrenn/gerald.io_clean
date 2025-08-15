@@ -26,11 +26,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Header */}
           <header className="sticky top-0 z-50 border-b" style={{ borderColor: '#1c2b1c' }}>
             <div className="mx-auto max-w-6xl px-4">
-              <div className="flex h-14 items-center justify-between">
-                {/* Left: Logo */}
-                <a href="/" className="font-bold tracking-wide">
-                  GERALD<span className="opacity-70">.io</span>
-                </a>
+              <div className="flex h-16 items-center justify-between">
+                {/* Left: Logo + BETA */}
+                <div className="flex-shrink-0 leading-none">
+                  <a href="/" className="font-bold tracking-wide block">
+                    GERALD<span className="opacity-70">.io</span>
+                  </a>
+                  <span
+                    className="mt-0.5 inline-block text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded"
+                    style={{ backgroundColor: '#C0FF00', color: 'black' }}
+                  >
+                    BETA
+                  </span>
+                </div>
 
                 {/* Center: Nav */}
                 <div className="flex-1 flex justify-center">
